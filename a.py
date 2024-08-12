@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import os
 import pyttsx3
 import tempfile
+from io import BytesIO
 
 # Function to read chapters from toc.ncx
 def get_chapters_from_toc_ncx(file_path):
@@ -84,12 +85,12 @@ def text_to_speech(text):
     engine.setProperty('voice', voices[1].id)  # Set the voice to the second option
     engine.setProperty('rate', 170)  # Set speech rate to 170 words per minute
     
-    # Save the speech to a temporary file
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as temp_file:
-        temp_file.close()
-        engine.save_to_file(text, temp_file.name)
-        engine.runAndWait()
-        return temp_file.name
+    # Use BytesIO instead of a file on disk
+    audio_io = BytesIO()
+    engine.save_to_file(text, audio_io)
+    engine.runAndWait()
+    audio_io.seek(0)
+    return audio_io
 
 # Streamlit app
 st.markdown("""
@@ -141,8 +142,8 @@ if selected_title != "Pilih Buku...":
         
         # Button for converting text to speech
         if st.button("Dengarkan Audio"):
-            audio_file_path = text_to_speech(chapter_text)
-            st.audio(audio_file_path, format='audio/mp3')
+            audio_file_io = text_to_speech(chapter_text)
+            st.audio(audio_file_io, format='audio/mp3')
         
         # Display the selected chapter content in a collapsible section with title
         with st.expander(f"Tampilkan Isi Buku: {selected_chapter}"):
