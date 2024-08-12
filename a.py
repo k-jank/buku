@@ -12,6 +12,7 @@ def text_to_speech(text):
 
     # Save the speech to a temporary file
     with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as temp_file:
+        temp_file.close()
         file_path = temp_file.name
         engine.save_to_file(text, file_path)
         engine.runAndWait()
