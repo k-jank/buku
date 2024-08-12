@@ -12,10 +12,10 @@ def text_to_speech(text):
 
     # Save the speech to a temporary file
     with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as temp_file:
-        temp_file.close()
-        engine.save_to_file(text, temp_file.name)
+        file_path = temp_file.name
+        engine.save_to_file(text, file_path)
         engine.runAndWait()
-        return temp_file.name
+        return file_path
 
 # Streamlit app
 st.title("Audio Playback Example")
@@ -30,5 +30,9 @@ if st.button("Generate and Play Audio"):
     st.write(f"Audio file path: {audio_file_path}")
     st.write(f"Audio file size: {os.path.getsize(audio_file_path)} bytes")
 
-    # Display the audio file
-    st.audio(audio_file_path, format='audio/mp3')
+    # Check if the file exists and is non-empty
+    if os.path.exists(audio_file_path) and os.path.getsize(audio_file_path) > 0:
+        # Display the audio file
+        st.audio(audio_file_path, format='audio/mp3')
+    else:
+        st.error("Failed to create audio file or file is empty.")
