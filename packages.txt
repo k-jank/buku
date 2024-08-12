@@ -1,2 +1,2 @@
 libespeak1
-libspkeak
+libespeak
