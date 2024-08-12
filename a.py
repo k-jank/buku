@@ -129,7 +129,7 @@ if selected_title != "Pilih Buku...":
         text_for_speech = chapter_texts.get(selected_chapter, "Konten tidak ditemukan.")
         
         # Button for converting text to speech
-        if st.button("Dengarkan Audio"):
+        if st.button("Klik untuk Menampilkan Audio"):
             audio_file_path = text_to_speech(text_for_speech)
             st.audio(audio_file_path, format='audio/mp3')
         
