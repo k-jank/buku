@@ -86,7 +86,7 @@ def text_to_speech(text):
     engine.setProperty('rate', 170)
     
     # Save the speech to a temporary file
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as temp_file:
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_file:
         temp_file.close()  # Close the file to ensure it's saved properly
         engine.save_to_file(text, temp_file.name)
         engine.runAndWait()
@@ -145,7 +145,7 @@ if selected_title != "Pilih Buku...":
             audio_file_path = text_to_speech(chapter_text)
             st.write(f"Audio file path: {audio_file_path}")
             if os.path.exists(audio_file_path):
-                st.audio(audio_file_path, format='audio/mp3')
+                st.audio(audio_file_path, format='audio/wav')
             else:
                 st.write("Audio file not found.")
         
