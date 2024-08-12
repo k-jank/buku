@@ -3,37 +3,41 @@ import pyttsx3
 import tempfile
 import os
 
-# Function to convert text to speech and return a path to the audio file
-def text_to_speech(text):
+def generate_speech(text):
+    # Inisialisasi pyttsx3
     engine = pyttsx3.init()
+
+    # Mengambil daftar suara yang tersedia
     voices = engine.getProperty('voices')
-    engine.setProperty('voice', voices[1].id)  # Set the voice to the second option
-    engine.setProperty('rate', 170)  # Set speech rate to 170 words per minute
 
-    # Save the speech to a temporary file
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as temp_file:
-        temp_file.close()
-        file_path = temp_file.name
-        engine.save_to_file(text, file_path)
+    # Menetapkan suara ke suara kedua dalam daftar (jika ada)
+    if len(voices) > 1:
+        engine.setProperty('voice', voices[1].id)
+
+    # Menetapkan kecepatan bicara
+    engine.setProperty('rate', 170)
+
+    # Membuat file sementara dengan ekstensi .wav
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_file:
+        temp_file_path = temp_file.name
+
+    try:
+        # Menyimpan audio ke file sementara
+        engine.save_to_file(text, temp_file_path)
         engine.runAndWait()
-        return file_path
+        
+        # Kembalikan path file sementara
+        return temp_file_path
+    finally:
+        # Hapus file sementara setelah digunakan
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
 
-# Streamlit app
-st.title("Audio Playback Example")
+# Aplikasi Streamlit
+st.title("Text-to-Speech")
 
-text = "Hello, this is a test for Streamlit Cloud audio playback."
+text = st.text_area("Enter text to convert to speech:", "Nama saya Jono.")
 
-# Button for converting text to speech
-if st.button("Generate and Play Audio"):
-    audio_file_path = text_to_speech(text)
-
-    # Print the file path and size for debugging
-    st.write(f"Audio file path: {audio_file_path}")
-    st.write(f"Audio file size: {os.path.getsize(audio_file_path)} bytes")
-
-    # Check if the file exists and is non-empty
-    if os.path.exists(audio_file_path) and os.path.getsize(audio_file_path) > 0:
-        # Display the audio file
-        st.audio(audio_file_path, format='audio/mp3')
-    else:
-        st.error("Failed to create audio file or file is empty.")
+if st.button("Generate Speech"):
+    audio_path = generate_speech(text)
+    st.audio(audio_path, format='audio/wav')
