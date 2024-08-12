@@ -141,4 +141,4 @@ if selected_title != "Pilih Buku...":
 
     st.write(f"**Deskripsi Buku:** {metadata['description']}")
 else:
-    st.write("Please select a book from the sidebar.")
+    st.write("Silakan pilih buku terlebih dahulu.")
