@@ -144,7 +144,7 @@ if selected_title != "Pilih Buku...":
         # Button for converting text to speech
         if st.button("Dengarkan Audio"):
             audio_file_path = text_to_speech(chapter_text)
-            st.audio(audio_file_path, format='audio/mp3')
+            st.audio(audio_data, format='audio/mp3')
         
         # Display the selected chapter content in a collapsible section with title
         with st.expander(f"Tampilkan Isi Buku: {selected_chapter}"):
