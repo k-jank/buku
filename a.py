@@ -54,13 +54,13 @@ def html_to_text_with_formatting(html_content):
     text = ''
     for tag in soup.find_all(['h1', 'h2', 'h3', 'p']):
         if tag.name == 'h1':
-            text += f'<h1 style="text-align:center; font-size:2em; margin-top:20px;">{tag.get_text()}</h1>\n'
+            text += f'{tag.get_text()}\n'
         elif tag.name == 'h2':
-            text += f'<h2 style="text-align:center; font-size:1.5em; margin-top:15px;">{tag.get_text()}</h2>\n'
+            text += f'{tag.get_text()}\n'
         elif tag.name == 'h3':
-            text += f'<h3 style="text-align:center; font-size:1.2em; margin-top:10px;">{tag.get_text()}</h3>\n'
+            text += f'{tag.get_text()}\n'
         elif tag.name == 'p':
-            text += f'<p style="margin-bottom:10px;">{tag.get_text()}</p>\n'
+            text += f'{tag.get_text()}\n'
     return text.strip()
 
 # Function to extract text from EPUB chapters
