@@ -122,7 +122,7 @@ if selected_title != "Pilih Buku...":
     st.write(f"**Penulis:** {metadata['author']}")
 
     # Create a sidebar for chapter selection
-    selected_chapter = st.sidebar.selectbox("Pilihan Bab", [title for title, _ in chapters])
+    selected_chapter = st.sidebar.selectbox("Daftar Bab", [title for title, _ in chapters])
 
     if selected_chapter:
         chapter_text = formatted_texts.get(selected_chapter, "Konten tidak ditemukan.")
