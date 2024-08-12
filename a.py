@@ -5,6 +5,7 @@ import os
 import pyttsx3
 import tempfile
 from io import BytesIO
+import shutil
 
 # Function to read chapters from toc.ncx
 def get_chapters_from_toc_ncx(file_path):
@@ -78,19 +79,21 @@ def extract_text_from_chapters(file_path, chapters):
     
     return text_content
 
-# Function to convert text to speech using pyttsx3
 def text_to_speech(text):
     engine = pyttsx3.init()
     voices = engine.getProperty('voices')
-    engine.setProperty('voice', voices[1].id)
-    engine.setProperty('rate', 170)
+    engine.setProperty('voice', voices[1].id)  # Set the voice to the second option
+    engine.setProperty('rate', 170)  # Set speech rate to 200 words per minute
     
-    # Save the speech to a temporary file
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_file:
-        temp_file.close()  # Close the file to ensure it's saved properly
-        engine.save_to_file(text, temp_file.name)
-        engine.runAndWait()
-        return temp_file.name
+    # Save the speech to a file in a stable location
+    output_path = 'static/audio_output.mp3'
+    engine.save_to_file(text, output_path)
+    engine.runAndWait()
+    
+    return output_path
+
+# Ensure the 'static' directory exists
+os.makedirs('static', exist_ok=True)
 
 # Streamlit app
 st.markdown("""
@@ -143,15 +146,12 @@ if selected_title != "Pilih Buku...":
         # Button for converting text to speech
         if st.button("Dengarkan Audio"):
             audio_file_path = text_to_speech(chapter_text)
-            st.write(f"Audio file path: {audio_file_path}")
-            if os.path.exists(audio_file_path):
-                st.audio(audio_file_path, format='audio/wav')
-            else:
-                st.write("Audio file not found.")
+            st.audio(audio_file_path, format='audio/mp3')
         
         # Display the selected chapter content in a collapsible section with title
         with st.expander(f"Tampilkan Isi Buku: {selected_chapter}"):
             st.markdown(chapter_text, unsafe_allow_html=True)
+
     else:
         st.write("Please select a chapter from the sidebar.")
 
