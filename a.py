@@ -48,34 +48,26 @@ def get_metadata_from_epub(file_path):
     
     return metadata
 
-# Function to convert HTML to text with formatting
-def html_to_text_with_formatting(html_content):
+# Function to extract plain text from HTML for gTTS
+def extract_text_for_gtts(html_content):
+    soup = BeautifulSoup(html_content, 'html.parser')
+    # Extract only the text, stripping out HTML tags
+    return soup.get_text(separator='\n').strip()
+
+# Function to generate formatted HTML for display in Streamlit
+def generate_formatted_html(html_content):
     soup = BeautifulSoup(html_content, 'html.parser')
     text = ''
     for tag in soup.find_all(['h1', 'h2', 'h3', 'p']):
         if tag.name == 'h1':
-            text += f'{tag.get_text()}\n'
+            text += f'<h1 style="text-align:center; font-size:2em; font-weight:bold; margin-top:20px; margin-bottom:10px;">{tag.get_text()}</h1>\n'
         elif tag.name == 'h2':
-            text += f'{tag.get_text()}\n'
+            text += f'<h2 style="text-align:center; font-size:1.5em; font-weight:bold; margin-top:20px; margin-bottom:10px;">{tag.get_text()}</h2>\n'
         elif tag.name == 'h3':
-            text += f'{tag.get_text()}\n'
+            text += f'<h3 style="text-align:center; font-size:1.2em; font-weight:bold; margin-top:20px; margin-bottom:10px;">{tag.get_text()}</h3>\n'
         elif tag.name == 'p':
-            text += f'{tag.get_text()}\n'
+            text += f'<p style="margin-bottom:20px;">{tag.get_text()}</p>\n'
     return text.strip()
-
-# Function to extract text from EPUB chapters
-def extract_text_from_chapters(file_path, chapters):
-    text_content = {}
-    
-    with zipfile.ZipFile(file_path, 'r') as zip_ref:
-        for title, content_file in chapters:
-            if content_file in zip_ref.namelist():
-                content = zip_ref.read(content_file)
-                text_content[title] = html_to_text_with_formatting(content)
-            else:
-                text_content[title] = "Konten tidak ditemukan."
-    
-    return text_content
 
 # Function to convert text to speech using gTTS
 def text_to_speech(text):
@@ -122,7 +114,8 @@ if selected_title != "Pilih Buku...":
     # Load metadata and chapters
     metadata = get_metadata_from_epub(epub_file_path)
     chapters = get_chapters_from_toc_ncx(epub_file_path)
-    texts = extract_text_from_chapters(epub_file_path, chapters)
+    chapter_texts = {title: extract_text_for_gtts(zipfile.ZipFile(epub_file_path, 'r').read(content_file)) for title, content_file in chapters}
+    formatted_texts = {title: generate_formatted_html(zipfile.ZipFile(epub_file_path, 'r').read(content_file)) for title, content_file in chapters}
 
     # Display metadata
     st.write(f"**Judul:** {metadata['title']}")
@@ -132,11 +125,12 @@ if selected_title != "Pilih Buku...":
     selected_chapter = st.sidebar.selectbox("Pilihan Bab", [title for title, _ in chapters])
 
     if selected_chapter:
-        chapter_text = texts.get(selected_chapter, "Konten tidak ditemukan.")
+        chapter_text = formatted_texts.get(selected_chapter, "Konten tidak ditemukan.")
+        text_for_speech = chapter_texts.get(selected_chapter, "Konten tidak ditemukan.")
         
         # Button for converting text to speech
         if st.button("Dengarkan Audio"):
-            audio_file_path = text_to_speech(chapter_text)
+            audio_file_path = text_to_speech(text_for_speech)
             st.audio(audio_file_path, format='audio/mp3')
         
         # Display the selected chapter content in a collapsible section with title
