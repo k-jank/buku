@@ -132,7 +132,7 @@ if selected_title != "Pilih Buku...":
         if 'audio_processing' not in st.session_state:
             st.session_state.audio_processing = False
 
-        if st.button("Klik untuk Menampilkan Audio"):
+        if st.button("Klik untuk Mendengarkan Audio"):
             # Set the flag to indicate audio is being processed
             st.session_state.audio_processing = True
             with st.spinner('Mohon Tunggu Sebentar...'):
