@@ -5,79 +5,44 @@ import os
 from gtts import gTTS
 import io
 
-# Function to read chapters from toc.ncx
-def get_chapters_from_toc_ncx(file_path):
-    chapter_list = []
-    
-    with zipfile.ZipFile(file_path, 'r') as zip_ref:
-        toc_ncx_filename = 'toc.ncx'
-        if toc_ncx_filename in zip_ref.namelist():
-            toc_ncx_content = zip_ref.read(toc_ncx_filename)
-            soup = BeautifulSoup(toc_ncx_content, 'xml')
-            nav_points = soup.find_all('navPoint')
-            
-            for nav_point in nav_points:
-                title = nav_point.find('navLabel').find('text').get_text()
-                content = nav_point.find('content')['src']
-                chapter_list.append((title, content))
-        else:
-            st.error("Table of contents (toc.ncx) not found in the EPUB file.")
-    
-    return chapter_list
+# Fungsi untuk menghapus tag HTML
+def remove_html_tags(html_content):
+    """Fungsi untuk menghapus tag HTML dan mengembalikan teks saja."""
+    soup = BeautifulSoup(html_content, 'html.parser')
+    return soup.get_text()
 
-# Function to extract metadata from EPUB file
-def get_metadata_from_epub(file_path):
-    metadata = {
-        'title': '',
-        'author': '',
-        'description': ''
-    }
-    
-    with zipfile.ZipFile(file_path, 'r') as zip_ref:
-        if 'META-INF/container.xml' in zip_ref.namelist():
-            container_xml_content = zip_ref.read('META-INF/container.xml')
-            soup = BeautifulSoup(container_xml_content, 'xml')
-            rootfile_path = soup.find('rootfile')['full-path']
-            
-            if rootfile_path:
-                opf_content = zip_ref.read(rootfile_path)
-                soup = BeautifulSoup(opf_content, 'xml')
-                metadata['title'] = soup.find('title').get_text() if soup.find('title') else metadata['title']
-                metadata['author'] = soup.find('creator').get_text() if soup.find('creator') else metadata['author']
-                metadata['description'] = soup.find('description').get_text() if soup.find('description') else metadata['description']
-    
-    return metadata
-
-# Function to convert HTML to text with formatting
+# Fungsi untuk mengonversi HTML menjadi teks
 def html_to_text_with_formatting(html_content):
+    # Function to convert HTML to text with formatting
     soup = BeautifulSoup(html_content, 'html.parser')
     text = ''
     for tag in soup.find_all(['h1', 'h2', 'h3', 'p']):
         if tag.name == 'h1':
-            text += f'<h1 style="text-align:center; font-size:2em; margin-top:20px;">{tag.get_text()}</h1>\n'
+            text += f'{tag.get_text()}\n'
         elif tag.name == 'h2':
-            text += f'<h2 style="text-align:center; font-size:1.5em; margin-top:15px;">{tag.get_text()}</h2>\n'
+            text += f'{tag.get_text()}\n'
         elif tag.name == 'h3':
-            text += f'<h3 style="text-align:center; font-size:1.2em; margin-top:10px;">{tag.get_text()}</h3>\n'
+            text += f'{tag.get_text()}\n'
         elif tag.name == 'p':
-            text += f'<p style="margin-bottom:10px;">{tag.get_text()}</p>\n'
+            text += f'{tag.get_text()}\n'
     return text.strip()
 
-# Function to extract text from EPUB chapters
+# Fungsi untuk mengekstrak teks dari bab-bab EPUB
 def extract_text_from_chapters(file_path, chapters):
     text_content = {}
     
     with zipfile.ZipFile(file_path, 'r') as zip_ref:
         for title, content_file in chapters:
             if content_file in zip_ref.namelist():
-                content = zip_ref.read(content_file)
-                text_content[title] = html_to_text_with_formatting(content)
+                content = zip_ref.read(content_file).decode('utf-8')  # Decode bytes to string
+                clean_text = remove_html_tags(content)  # Remove HTML tags
+                text_content[title] = clean_text
             else:
                 text_content[title] = "Konten tidak ditemukan."
     
     return text_content
 
-# Function to convert text to speech using gTTS
+# Fungsi untuk mengonversi teks menjadi audio menggunakan gTTS
 def text_to_speech(text):
     tts = gTTS(text=text, lang='id')
     with io.BytesIO() as buffer:
