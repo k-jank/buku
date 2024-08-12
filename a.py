@@ -84,12 +84,14 @@ def text_to_speech(text):
     engine.setProperty('voice', voices[1].id)  # Set the voice to the second option
     engine.setProperty('rate', 170)  # Set speech rate to 170 words per minute
     
-    # Save the speech to a temporary file
+    # Save the speech to a temporary file and read its content
     with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as temp_file:
         temp_file.close()
         engine.save_to_file(text, temp_file.name)
         engine.runAndWait()
-        return temp_file.name
+        with open(temp_file.name, 'rb') as audio_file:
+            audio_data = audio_file.read()
+        return audio_data
 
 # Streamlit app
 st.markdown("""
