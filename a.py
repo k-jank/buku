@@ -128,9 +128,16 @@ if selected_title != "Pilih Buku...":
         chapter_text = formatted_texts.get(selected_chapter, "Konten tidak ditemukan.")
         text_for_speech = chapter_texts.get(selected_chapter, "Konten tidak ditemukan.")
         
-        # Button for converting text to speech
+        # Add a flag to indicate if audio is being processed
+        if 'audio_processing' not in st.session_state:
+            st.session_state.audio_processing = False
+
         if st.button("Klik untuk Menampilkan Audio"):
-            audio_file_path = text_to_speech(text_for_speech)
+            # Set the flag to indicate audio is being processed
+            st.session_state.audio_processing = True
+            with st.spinner('Mohon Tunggu Sebentar...'):
+                audio_file_path = text_to_speech(text_for_speech)
+            st.session_state.audio_processing = False
             st.audio(audio_file_path, format='audio/mp3')
         
         # Display the selected chapter content in a collapsible section with title
