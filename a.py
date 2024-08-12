@@ -17,18 +17,19 @@ def generate_speech(text):
     engine.setProperty('rate', 170)
 
     # Menggunakan BytesIO untuk menyimpan audio di memori
-    with io.BytesIO() as audio_buffer:
-        # Menyimpan audio ke buffer BytesIO
-        engine.save_to_file(text, 'output.wav')
-        engine.runAndWait()
-        
-        # Membaca file audio ke dalam buffer BytesIO
-        with open('output.wav', 'rb') as f:
-            audio_buffer.write(f.read())
-        
-        # Kembalikan buffer BytesIO
-        audio_buffer.seek(0)
-        return audio_buffer
+    audio_buffer = io.BytesIO()
+
+    # Menyimpan audio ke buffer BytesIO
+    engine.save_to_file(text, 'output.wav')
+    engine.runAndWait()
+    
+    # Membaca file audio ke dalam buffer BytesIO
+    with open('output.wav', 'rb') as f:
+        audio_buffer.write(f.read())
+
+    # Reset buffer pointer ke awal
+    audio_buffer.seek(0)
+    return audio_buffer
 
 # Aplikasi Streamlit
 st.title("Text-to-Speech")
