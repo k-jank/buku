@@ -82,15 +82,15 @@ def extract_text_from_chapters(file_path, chapters):
 def text_to_speech(text):
     engine = pyttsx3.init()
     voices = engine.getProperty('voices')
-    engine.setProperty('voice', voices[1].id)  # Set the voice to the second option
-    engine.setProperty('rate', 170)  # Set speech rate to 170 words per minute
+    engine.setProperty('voice', voices[1].id)
+    engine.setProperty('rate', 170)
     
-    # Use BytesIO instead of a file on disk
-    audio_io = BytesIO()
-    engine.save_to_file(text, audio_io)
-    engine.runAndWait()
-    audio_io.seek(0)
-    return audio_io
+    # Save the speech to a temporary file
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as temp_file:
+        temp_file.close()  # Close the file to ensure it's saved properly
+        engine.save_to_file(text, temp_file.name)
+        engine.runAndWait()
+        return temp_file.name
 
 # Streamlit app
 st.markdown("""
@@ -142,8 +142,12 @@ if selected_title != "Pilih Buku...":
         
         # Button for converting text to speech
         if st.button("Dengarkan Audio"):
-            audio_file_io = text_to_speech(chapter_text)
-            st.audio(audio_file_io, format='audio/mp3')
+            audio_file_path = text_to_speech(chapter_text)
+            st.write(f"Audio file path: {audio_file_path}")
+            if os.path.exists(audio_file_path):
+                st.audio(audio_file_path, format='audio/mp3')
+            else:
+                st.write("Audio file not found.")
         
         # Display the selected chapter content in a collapsible section with title
         with st.expander(f"Tampilkan Isi Buku: {selected_chapter}"):
