@@ -1,7 +1,6 @@
 import streamlit as st
 import pyttsx3
-import tempfile
-import os
+import io
 
 def generate_speech(text):
     # Inisialisasi pyttsx3
@@ -17,21 +16,19 @@ def generate_speech(text):
     # Menetapkan kecepatan bicara
     engine.setProperty('rate', 170)
 
-    # Membuat file sementara dengan ekstensi .wav
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_file:
-        temp_file_path = temp_file.name
-
-    try:
-        # Menyimpan audio ke file sementara
-        engine.save_to_file(text, temp_file_path)
+    # Menggunakan BytesIO untuk menyimpan audio di memori
+    with io.BytesIO() as audio_buffer:
+        # Menyimpan audio ke buffer BytesIO
+        engine.save_to_file(text, 'output.wav')
         engine.runAndWait()
         
-        # Kembalikan path file sementara
-        return temp_file_path
-    finally:
-        # Hapus file sementara setelah digunakan
-        if os.path.exists(temp_file_path):
-            os.remove(temp_file_path)
+        # Membaca file audio ke dalam buffer BytesIO
+        with open('output.wav', 'rb') as f:
+            audio_buffer.write(f.read())
+        
+        # Kembalikan buffer BytesIO
+        audio_buffer.seek(0)
+        return audio_buffer
 
 # Aplikasi Streamlit
 st.title("Text-to-Speech")
@@ -39,5 +36,5 @@ st.title("Text-to-Speech")
 text = st.text_area("Enter text to convert to speech:", "Nama saya Jono.")
 
 if st.button("Generate Speech"):
-    audio_path = generate_speech(text)
-    st.audio(audio_path, format='audio/wav')
+    audio_buffer = generate_speech(text)
+    st.audio(audio_buffer, format='audio/wav')
