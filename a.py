@@ -12,19 +12,16 @@ def text_to_speech(text):
 
     # Simpan output suara dalam buffer
     with io.BytesIO() as buffer:
-        # Output ke file WAV
-        with wave.open(buffer, 'wb') as wav_file:
-            wav_file.setnchannels(1)
-            wav_file.setsampwidth(2)
-            wav_file.setframerate(22050)
-            engine.save_to_file(text, 'temp.wav')
-            engine.runAndWait()
+        # Menghasilkan file WAV
+        engine.save_to_file(text, 'temp.wav')
+        engine.runAndWait()
 
-            with open('temp.wav', 'rb') as f:
-                wav_file.writeframes(f.read())
-
+        # Baca file WAV dan simpan ke buffer
+        with open('temp.wav', 'rb') as file:
+            buffer.write(file.read())
             buffer.seek(0)
-            return buffer.getvalue()
+        
+        return buffer.getvalue()
 
 st.title("Text-to-Speech dengan pyttsx3")
 
