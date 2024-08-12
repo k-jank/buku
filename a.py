@@ -85,12 +85,16 @@ def text_to_speech(text):
     engine.setProperty('voice', voices[1].id)  # Set the voice to the second option
     engine.setProperty('rate', 170)  # Set speech rate to 200 words per minute
     
-    # Save the speech to a file in a stable location
-    output_path = 'static/audio_output.mp3'
-    engine.save_to_file(text, output_path)
-    engine.runAndWait()
-    
-    return output_path
+    # Save the speech to a temporary file
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as temp_file:
+        temp_file.close()
+        engine.save_to_file(text, temp_file.name)
+        engine.runAndWait()
+        
+        # Move the file to a directory where it can be accessed
+        accessible_path = os.path.join('/tmp', os.path.basename(temp_file.name))
+        shutil.move(temp_file.name, accessible_path)
+        return accessible_path
 
 # Ensure the 'static' directory exists
 os.makedirs('static', exist_ok=True)
