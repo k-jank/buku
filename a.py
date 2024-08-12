@@ -3,7 +3,7 @@ import zipfile
 from bs4 import BeautifulSoup
 import os
 from gtts import gTTS
-import io
+import tempfile
 
 # Function to read chapters from toc.ncx
 def get_chapters_from_toc_ncx(file_path):
@@ -48,50 +48,43 @@ def get_metadata_from_epub(file_path):
     
     return metadata
 
-# Fungsi untuk menghapus tag HTML
-def remove_html_tags(html_content):
-    """Fungsi untuk menghapus tag HTML dan mengembalikan teks saja."""
-    soup = BeautifulSoup(html_content, 'html.parser')
-    return soup.get_text()
-
-# Fungsi untuk mengonversi HTML menjadi teks
+# Function to convert HTML to text with formatting
 def html_to_text_with_formatting(html_content):
-    # Function to convert HTML to text with formatting
     soup = BeautifulSoup(html_content, 'html.parser')
     text = ''
     for tag in soup.find_all(['h1', 'h2', 'h3', 'p']):
         if tag.name == 'h1':
-            text += f'{tag.get_text()}\n'
+            text += f'<h1 style="text-align:center; font-size:2em; margin-top:20px;">{tag.get_text()}</h1>\n'
         elif tag.name == 'h2':
-            text += f'{tag.get_text()}\n'
+            text += f'<h2 style="text-align:center; font-size:1.5em; margin-top:15px;">{tag.get_text()}</h2>\n'
         elif tag.name == 'h3':
-            text += f'{tag.get_text()}\n'
+            text += f'<h3 style="text-align:center; font-size:1.2em; margin-top:10px;">{tag.get_text()}</h3>\n'
         elif tag.name == 'p':
-            text += f'{tag.get_text()}\n'
+            text += f'<p style="margin-bottom:10px;">{tag.get_text()}</p>\n'
     return text.strip()
 
-# Fungsi untuk mengekstrak teks dari bab-bab EPUB
+# Function to extract text from EPUB chapters
 def extract_text_from_chapters(file_path, chapters):
     text_content = {}
     
     with zipfile.ZipFile(file_path, 'r') as zip_ref:
         for title, content_file in chapters:
             if content_file in zip_ref.namelist():
-                content = zip_ref.read(content_file).decode('utf-8')  # Decode bytes to string
-                clean_text = remove_html_tags(content)  # Remove HTML tags
-                text_content[title] = clean_text
+                content = zip_ref.read(content_file)
+                text_content[title] = html_to_text_with_formatting(content)
             else:
                 text_content[title] = "Konten tidak ditemukan."
     
     return text_content
 
-# Fungsi untuk mengonversi teks menjadi audio menggunakan gTTS
+# Function to convert text to speech using gTTS
 def text_to_speech(text):
-    tts = gTTS(text=text, lang='id')
-    with io.BytesIO() as buffer:
-        tts.write_to_fp(buffer)
-        buffer.seek(0)
-        return buffer.getvalue()
+    tts = gTTS(text=text, lang='id')  # 'id' is for Indonesian, change if needed
+    # Save the speech to a temporary file
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as temp_file:
+        temp_file.close()
+        tts.save(temp_file.name)
+        return temp_file.name
 
 # Streamlit app
 st.markdown("""
@@ -143,8 +136,8 @@ if selected_title != "Pilih Buku...":
         
         # Button for converting text to speech
         if st.button("Dengarkan Audio"):
-            audio_data = text_to_speech(chapter_text)
-            st.audio(audio_data, format='audio/mp3')
+            audio_file_path = text_to_speech(chapter_text)
+            st.audio(audio_file_path, format='audio/mp3')
         
         # Display the selected chapter content in a collapsible section with title
         with st.expander(f"Tampilkan Isi Buku: {selected_chapter}"):
@@ -154,4 +147,4 @@ if selected_title != "Pilih Buku...":
 
     st.write(f"**Deskripsi Buku:** {metadata['description']}")
 else:
-    st.write("Silakan pilih buku terlebih dahulu.")
+    st.write("Please select a book from the sidebar.")
