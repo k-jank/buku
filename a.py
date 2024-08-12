@@ -127,11 +127,6 @@ if selected_title != "Pilih Buku...":
     if selected_chapter:
         chapter_text = formatted_texts.get(selected_chapter, "Konten tidak ditemukan.")
         text_for_speech = chapter_texts.get(selected_chapter, "Konten tidak ditemukan.")
-
-        # Display loading spinner and message while processing the audio
-        with st.spinner("Mohon Tunggu Sebentar..."):
-            time.sleep(2)  # Simulate a delay for processing (remove or adjust as needed)
-            audio_file_path = text_to_speech(text_for_speech)
         
         # Button for converting text to speech
         if st.button("Klik untuk Menampilkan Audio"):
