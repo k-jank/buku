@@ -1,6 +1,6 @@
 import streamlit as st
 import pyttsx3
-import os
+import tempfile
 
 # Inisialisasi pyttsx3
 engine = pyttsx3.init()
@@ -8,10 +8,14 @@ voices = engine.getProperty('voices')
 engine.setProperty('voice', voices[1].id)  # Mengatur suara
 engine.setProperty('rate', 170)  # Mengatur kecepatan bicara
 
-def text_to_speech(text, file_path):
-    """Fungsi untuk mengubah teks menjadi file audio."""
-    engine.save_to_file(text, file_path)
-    engine.runAndWait()
+def text_to_speech(text):
+    """Fungsi untuk mengubah teks menjadi file audio di buffer."""
+    # Menggunakan tempfile untuk membuat file sementara
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_file:
+        temp_path = temp_file.name
+        engine.save_to_file(text, temp_path)
+        engine.runAndWait()
+        return temp_path
 
 st.title("Text-to-Speech dengan pyttsx3")
 
@@ -19,12 +23,7 @@ st.title("Text-to-Speech dengan pyttsx3")
 text_input = st.text_area("Masukkan teks:", "Nama saya Jono.")
 
 if st.button("Convert to Speech"):
-    # Menyimpan file audio sementara
-    file_path = 'temp_audio.wav'
-    text_to_speech(text_input, file_path)
+    file_path = text_to_speech(text_input)
     
     # Memutar file audio
     st.audio(file_path, format='audio/wav')
-
-    # Menghapus file audio sementara
-    os.remove(file_path)
