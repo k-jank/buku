@@ -156,7 +156,10 @@ def get_metadata_from_epub(file_path):
             
             if rootfile_path:
                 opf_content = zip_ref.read(rootfile_path)
-                soup = BeautifulSoup(opf_content, 'xml')
+                try:
+                    soup = BeautifulSoup(container_xml_content, 'lxml')
+                except FeatureNotFound:
+                    soup = BeautifulSoup(container_xml_content, 'html.parser')
                 metadata['title'] = soup.find('title').get_text() if soup.find('title') else metadata['title']
                 metadata['author'] = soup.find('creator').get_text() if soup.find('creator') else metadata['author']
                 metadata['description'] = soup.find('description').get_text() if soup.find('description') else metadata['description']
