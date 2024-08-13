@@ -4,7 +4,6 @@ from bs4 import BeautifulSoup
 import os
 from gtts import gTTS
 import tempfile
-import mimetypes
 import fitz
 import re
 
@@ -148,7 +147,7 @@ def get_metadata_from_epub(file_path):
     with zipfile.ZipFile(file_path, 'r') as zip_ref:
         if 'META-INF/container.xml' in zip_ref.namelist():
             container_xml_content = zip_ref.read('META-INF/container.xml')
-            soup = BeautifulSoup(container_xml_content, 'xml')
+            soup = BeautifulSoup(container_xml_content, 'lxml')
             rootfile_path = soup.find('rootfile')['full-path']
             
             if rootfile_path:
