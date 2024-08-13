@@ -1,6 +1,6 @@
 import streamlit as st
 import zipfile
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, FeatureNotFound
 import os
 from gtts import gTTS
 import tempfile
