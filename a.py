@@ -1,6 +1,6 @@
 import streamlit as st
 import zipfile
-from bs4 import BeautifulSoup, FeatureNotFound
+from bs4 import BeautifulSoup
 import os
 from gtts import gTTS
 import tempfile
@@ -135,9 +135,6 @@ def extract_text_from_chapters(file_path, chapters):
                 text_content[title] = "Konten tidak ditemukan."
     
     return text_content
-
-
-
 
 # Function to convert text to speech using gTTS
 def text_to_speech(text):
