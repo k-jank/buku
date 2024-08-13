@@ -110,7 +110,7 @@ def get_chapters_from_pdf(file_path):
 
 # Function to convert HTML to text with formatting
 def html_to_text_with_formatting(html_content):
-    soup = BeautifulSoup(html_content, 'html.parser')
+    soup = BeautifulSoup(html_content, ' 'lxml'')
     text = ''
     for tag in soup.find_all(['h1', 'h2', 'h3', 'p']):
         if tag.name == 'h1':
