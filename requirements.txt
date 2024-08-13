@@ -1,7 +1,5 @@
 streamlit
 beautifulsoup4
 gtts
-lxml
 PyMuPDF
-pyttsx3
-IPython
+lxml
