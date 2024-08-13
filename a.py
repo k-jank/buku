@@ -136,6 +136,7 @@ def extract_text_from_chapters(file_path, chapters):
     
     return text_content
 
+
 # Function to extract metadata from EPUB file
 def get_metadata_from_epub(file_path):
     metadata = {
@@ -147,19 +148,12 @@ def get_metadata_from_epub(file_path):
     with zipfile.ZipFile(file_path, 'r') as zip_ref:
         if 'META-INF/container.xml' in zip_ref.namelist():
             container_xml_content = zip_ref.read('META-INF/container.xml')
-            try:
-                soup = BeautifulSoup(container_xml_content, 'lxml')
-            except FeatureNotFound:
-                soup = BeautifulSoup(container_xml_content, 'html.parser')
-
+            soup = BeautifulSoup(container_xml_content, 'xml')
             rootfile_path = soup.find('rootfile')['full-path']
             
             if rootfile_path:
                 opf_content = zip_ref.read(rootfile_path)
-                try:
-                    soup = BeautifulSoup(container_xml_content, 'lxml')
-                except FeatureNotFound:
-                    soup = BeautifulSoup(container_xml_content, 'html.parser')
+                soup = BeautifulSoup(opf_content, 'xml')
                 metadata['title'] = soup.find('title').get_text() if soup.find('title') else metadata['title']
                 metadata['author'] = soup.find('creator').get_text() if soup.find('creator') else metadata['author']
                 metadata['description'] = soup.find('description').get_text() if soup.find('description') else metadata['description']
