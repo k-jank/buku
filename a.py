@@ -139,37 +139,25 @@ def extract_text_from_chapters(file_path, chapters):
 
 # Function to extract metadata from EPUB file
 def get_metadata_from_epub(file_path):
-    # Only process EPUB files
-    if not file_path.lower().endswith('.epub'):
-        return None
-
-    # Validate that it's a ZIP file
-    mime_type, _ = mimetypes.guess_type(file_path)
-    if mime_type != 'application/epub+zip':
-        raise ValueError("File is not a valid EPUB file")
-    
     metadata = {
         'title': '',
         'author': '',
         'description': ''
     }
     
-    try:
-        with zipfile.ZipFile(file_path, 'r') as zip_ref:
-            if 'META-INF/container.xml' in zip_ref.namelist():
-                container_xml_content = zip_ref.read('META-INF/container.xml')
-                soup = BeautifulSoup(container_xml_content, 'lxml-xml')
-                rootfile_path = soup.find('rootfile')['full-path']
-                
-                if rootfile_path:
-                    opf_content = zip_ref.read(rootfile_path)
-                    soup = BeautifulSoup(opf_content, 'xml')
-                    metadata['title'] = soup.find('title').get_text() if soup.find('title') else metadata['title']
-                    metadata['author'] = soup.find('creator').get_text() if soup.find('creator') else metadata['author']
-                    metadata['description'] = soup.find('description').get_text() if soup.find('description') else metadata['description']
-    except zipfile.BadZipFile:
-        raise ValueError("File is not a valid ZIP archive")
-
+    with zipfile.ZipFile(file_path, 'r') as zip_ref:
+        if 'META-INF/container.xml' in zip_ref.namelist():
+            container_xml_content = zip_ref.read('META-INF/container.xml')
+            soup = BeautifulSoup(container_xml_content, 'xml')
+            rootfile_path = soup.find('rootfile')['full-path']
+            
+            if rootfile_path:
+                opf_content = zip_ref.read(rootfile_path)
+                soup = BeautifulSoup(opf_content, 'xml')
+                metadata['title'] = soup.find('title').get_text() if soup.find('title') else metadata['title']
+                metadata['author'] = soup.find('creator').get_text() if soup.find('creator') else metadata['author']
+                metadata['description'] = soup.find('description').get_text() if soup.find('description') else metadata['description']
+    
     return metadata
 
 # Function to convert text to speech using gTTS
