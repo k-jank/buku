@@ -137,6 +137,11 @@ def get_chapters_from_pdf(file_path):
             print(f"Detected {title}: {first_line_after_title}")
     
     return chapter_list
+
+def remove_html_tags(html_content):
+    """Fungsi untuk menghapus tag HTML dari teks."""
+    soup = BeautifulSoup(html_content, 'html.parser')
+    return soup.get_text()
     
 # Function to convert text to speech using gTTS
 def text_to_speech(text):
@@ -201,8 +206,10 @@ if selected_title != "Pilih Buku...":
             
             # Button for converting text to speech
             if st.button("Dengarkan Audio"):
-                audio_file_path = text_to_speech(chapter_text)
-                st.audio(audio_file_path, format='audio/mp3')
+                clean_text = remove_html_tags(chapter_text)
+                audio_file_path = text_to_speech(clean_text)
+                if audio_file_path:
+                    st.audio(audio_file_path, format='audio/mp3')
             
             # Display the selected chapter content in a collapsible section with title
             with st.expander(f"Tampilkan Isi Buku: {selected_chapter}"):
