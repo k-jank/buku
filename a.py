@@ -80,6 +80,62 @@ def extract_text_from_chapters(file_path, chapters):
                 text_content[title] = "Konten tidak ditemukan."
     
     return text_content
+
+def remove_page_numbers(text):
+    # Regex pattern to identify page numbers, assuming they are on their own line or separated by newlines
+    pattern = r'^\d+$'
+    lines = text.split('\n')
+    cleaned_lines = [line for line in lines if not re.match(pattern, line.strip())]
+    return '\n'.join(cleaned_lines)
+
+def get_chapters_from_pdf(file_path):
+    chapter_list = []
+    
+    # Open PDF file
+    with fitz.open(file_path) as doc:
+        num_pages = doc.page_count
+        text_by_page = []
+        
+        # Extract text from each page
+        for i in range(num_pages):
+            page = doc.load_page(i)
+            text = page.get_text()
+            text_by_page.append(text)
+        
+        # Combine all text for analysis
+        full_text = "\n".join(text_by_page)
+        
+        # Remove page numbers from the text
+        cleaned_text = remove_page_numbers(full_text)
+        
+        # Adjust the regex pattern to match titles like "BAB I", "BAB II", etc.
+        chapter_titles = re.findall(r'\bBAB\s+[IVXLCDM]+\b|\bBAB\s+\d+', cleaned_text, flags=re.IGNORECASE)
+        
+        # Create a list of positions for each title
+        positions = [m.start() for m in re.finditer(r'\bBAB\s+[IVXLCDM]+\b|\bBAB\s+\d+', cleaned_text, flags=re.IGNORECASE)]
+        
+        # Add end position for the last chapter
+        positions.append(len(cleaned_text))
+        
+        for i in range(len(positions) - 1):
+            start_pos = positions[i]
+            end_pos = positions[i + 1]
+            
+            # Extract the chapter content
+            chapter_content = cleaned_text[start_pos:end_pos].strip()
+            
+            # Extract the title of the chapter
+            title_match = re.search(r'\bBAB\s+[IVXLCDM]+\b|\bBAB\s+\d+', chapter_content, flags=re.IGNORECASE)
+            title = title_match.group() if title_match else 'Unknown Title'
+            
+            # Extract first line after title to include in output
+            lines = chapter_content.split('\n')
+            first_line_after_title = lines[1] if len(lines) > 1 else ""
+            
+            chapter_list.append((title, chapter_content))
+            print(f"Detected {title}: {first_line_after_title}")
+    
+    return chapter_list
     
 # Function to convert text to speech using gTTS
 def text_to_speech(text):
