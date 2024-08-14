@@ -11,15 +11,19 @@ book_files = [f for f in os.listdir(books_dir) if f.endswith(('.epub', '.pdf'))]
 
 # Function to read chapters from EPUB using the .ncx file
 def get_chapters_from_epub(file_path):
-    chapters = []
+    chapter_list = []
     
     with zipfile.ZipFile(file_path, 'r') as epub_zip:
-        # Locate .ncx file
-        ncx_files = [name for name in epub_zip.namelist() if name.endswith('.ncx')]
-        if not ncx_files:
-            return chapters
-        
-        ncx_file = ncx_files[0]
+        possible_paths = ['', 'OPS/', 'OEBPS/']
+        toc_ncx_filename = None
+
+        # Check each possible path
+        for path in possible_paths:
+            toc_ncx = path + 'toc.ncx'
+            if toc_ncx in zip_ref.namelist():
+                toc_ncx_filename = toc_ncx
+                base_path = path
+                break
         
         # Read and parse the .ncx file
         with epub_zip.open(ncx_file) as f:
@@ -39,8 +43,8 @@ def get_chapters_from_epub(file_path):
             content_file = content_element.get('src') if content_element is not None else ''
             chapters.append((title, content_file))
     
-    return chapters
-
+    return chapter_list 
+    
 # Streamlit app
 st.sidebar.title("Available Books")
 selected_book = st.sidebar.selectbox("Select a book:", book_files)
