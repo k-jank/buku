@@ -138,17 +138,14 @@ def get_chapters_from_pdf(file_path):
     return chapter_list
     
 # Function to convert text to speech using gTTS
+# Function to convert text to speech using gTTS
 def text_to_speech(text):
-    try:
-        tts = gTTS(text=text, lang='id')  
-        # Save the speech to a temporary file
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as temp_file:
-            temp_file.close()
-            tts.save(temp_file.name)
-            return temp_file.name
-    except Exception as e:
-        st.error(f"Error generating speech: {str(e)}")
-        return None
+    tts = gTTS(text=text, lang='id')  # 'id' is for Indonesian, change if needed
+    # Save the speech to a temporary file
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as temp_file:
+        temp_file.close()
+        tts.save(temp_file.name)
+        return temp_file.name
 
 
 # Streamlit app
