@@ -233,4 +233,4 @@ if selected_title != "Pilih Buku...":
             else:
                 st.write("Please select a chapter from the sidebar.")
 else:
-    st.write(f"**{selected_title}** format is not supported for chapter extraction.")
+    st.write(f"**{selected_title}**")
