@@ -10,7 +10,7 @@ books_dir = 'books/'
 # Get the list of EPUB and PDF files in the directory
 book_files = [f for f in os.listdir(books_dir) if f.endswith(('.epub', '.pdf'))]
 
-lass MyHTMLParser(HTMLParser):
+class MyHTMLParser(HTMLParser):
     def __init__(self):
         super().__init__()
         self.chapter_list = []
