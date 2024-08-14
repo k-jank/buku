@@ -2,7 +2,7 @@ import streamlit as st
 import zipfile
 from bs4 import BeautifulSoup
 import os
-from lxml import etree
+import xml.etree.ElementTree as ET
 
 # Define the directory containing the books
 books_dir = 'books/'
@@ -27,7 +27,7 @@ def get_chapters_from_epub(file_path):
         if toc_ncx_filename:
             try:
                 toc_ncx_content = zip_ref.read(toc_ncx_filename).decode('utf-8')
-                root = etree.fromstring(toc_ncx_content)
+                root = ET.fromstring(toc_ncx_content)
                 
                 nav_points = root.findall('.//navPoint')
                 
