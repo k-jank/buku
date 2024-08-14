@@ -2,6 +2,7 @@ import streamlit as st
 import zipfile
 from bs4 import BeautifulSoup
 import os
+from lxml import etree
 
 # Define the directory containing the books
 books_dir = 'books/'
