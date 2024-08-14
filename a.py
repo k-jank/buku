@@ -5,6 +5,8 @@ import xml.etree.ElementTree as ET
 from bs4 import BeautifulSoup
 from gtts import gTTS
 import tempfile
+import fitz
+import re
 
 # Define the directory containing the books
 books_dir = 'books/'
