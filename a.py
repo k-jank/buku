@@ -39,7 +39,7 @@ def get_chapters_from_epub(file_path):
         }
         
         for nav_point in root.findall('.//ncx:navPoint', namespaces):
-            label_element = nav_point.find('ncx:navLabel/ncx:label', namespaces)
+            label_element = nav_point.find('ncx:navLabel/ncx:text', namespaces)  # Changed to 'ncx:text'
             title = label_element.text if label_element is not None else 'Untitled'
             content_element = nav_point.find('ncx:content', namespaces)
             content_file = content_element.get('src') if content_element is not None else ''
@@ -65,16 +65,5 @@ if selected_book.endswith('.epub'):
     # Display the selected chapter title
     st.write(f"### You selected chapter: {selected_chapter}")
 
-    # Optionally, display content of the selected chapter
-    content_file = next((content for title, content in chapters if title == selected_chapter), None)
-    if content_file:
-        with zipfile.ZipFile(selected_book_path, 'r') as epub_zip:
-            content_path = content_file
-            if content_path.startswith('/'):
-                content_path = content_path[1:]
-            with epub_zip.open(content_path) as f:
-                chapter_content = f.read().decode('utf-8')
-        st.write(f"**Content of {selected_chapter}:**")
-        st.write(chapter_content)
 else:
     st.write(f"**{selected_book}** format is not supported for chapter extraction.")
