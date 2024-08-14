@@ -53,8 +53,8 @@ def get_chapters_from_epub(file_path):
     
     return chapter_list
 
-# Function to convert HTML to text with formatting
-def html_to_text_with_formatting(html_content):
+# Function to convert HTML to formatted text for display
+def generate_formatted_html(html_content):
     soup = BeautifulSoup(html_content, 'html.parser')
     text = ''
     for tag in soup.find_all(['h1', 'h2', 'h3', 'p']):
@@ -68,6 +68,11 @@ def html_to_text_with_formatting(html_content):
             text += f'<p style="margin-bottom:10px;">{tag.get_text()}</p>\n'
     return text.strip()
 
+# Function to extract plain text for gTTS
+def extract_text_for_gtts(html_content):
+    soup = BeautifulSoup(html_content, 'html.parser')
+    return soup.get_text(separator='\n').strip()
+
 # Function to extract text from EPUB chapters
 def extract_text_from_chapters(file_path, chapters):
     text_content = {}
@@ -76,7 +81,7 @@ def extract_text_from_chapters(file_path, chapters):
         for title, content_file in chapters:
             if content_file in epub_zip.namelist():
                 content = epub_zip.read(content_file).decode('utf-8')  # Decode content to string
-                text_content[title] = html_to_text_with_formatting(content)
+                text_content[title] = generate_formatted_html(content)
             else:
                 text_content[title] = "Konten tidak ditemukan."
     
@@ -137,11 +142,6 @@ def get_chapters_from_pdf(file_path):
             print(f"Detected {title}: {first_line_after_title}")
     
     return chapter_list
-
-def remove_html_tags(html_content):
-    """Fungsi untuk menghapus tag HTML dari teks."""
-    soup = BeautifulSoup(html_content, 'html.parser')
-    return soup.get_text()
     
 # Function to convert text to speech using gTTS
 def text_to_speech(text):
@@ -196,18 +196,19 @@ if selected_title != "Pilih Buku...":
         # Process EPUB file
         st.write(f"**Judul:** {selected_title}") 
         chapters = get_chapters_from_epub(book_file_path)
-        texts = extract_text_from_chapters(book_file_path, chapters)
+        formatted_texts = extract_text_from_chapters(book_file_path, chapters)
+        text_for_speech = {title: extract_text_for_gtts(html_content) for title, html_content in formatted_texts.items()}
 
         # Create a sidebar for chapter selection
         selected_chapter = st.sidebar.selectbox("Pilihan Bab", [title for title, _ in chapters])
 
         if selected_chapter:
-            chapter_text = texts.get(selected_chapter, "Konten tidak ditemukan.")
-            
+            chapter_text = formatted_texts.get(selected_chapter, "Konten tidak ditemukan.")
+            text_for_speech_content = text_for_speech.get(selected_chapter, "Konten tidak ditemukan.")
+
             # Button for converting text to speech
             if st.button("Dengarkan Audio"):
-                clean_text = remove_html_tags(chapter_text)
-                audio_file_path = text_to_speech(clean_text)
+                audio_file_path = text_to_speech(text_for_speech_content)
                 if audio_file_path:
                     st.audio(audio_file_path, format='audio/mp3')
             
@@ -220,6 +221,7 @@ if selected_title != "Pilih Buku...":
     elif file_extension == '.pdf':
             # Process PDF file
             chapters = get_chapters_from_pdf(book_file_path)
+            text_for_speech = {title: extract_text_for_gtts(text) for title, text in chapters}
     
             # Display metadata and chapters
             st.write(f"**Judul:** {selected_title}") 
@@ -229,16 +231,20 @@ if selected_title != "Pilih Buku...":
     
             if selected_chapter:
                 chapter_text = next((text for title, text in chapters if title == selected_chapter), "Konten tidak ditemukan.")
+                text_for_speech_content = next((text for title, text in chapters if title == selected_chapter), "Konten tidak ditemukan.")
                 
                 # Button for converting text to speech
                 if st.button("Dengarkan Audio"):
-                    audio_file_path = text_to_speech(chapter_text)
-                    st.audio(audio_file_path, format='audio/mp3')
+                    audio_file_path = text_to_speech(text_for_speech_content)
+                    if audio_file_path:
+                        st.audio(audio_file_path, format='audio/mp3')
                 
                 # Display the selected chapter content in a collapsible section with title
                 with st.expander(f"Tampilkan Isi Buku: {selected_chapter}"):
                     st.markdown(chapter_text)
             else:
                 st.write("Please select a chapter from the sidebar.")
+
 else:
-    st.write(f"**{selected_title}**")
+st.write(f"{selected_title}")
+
