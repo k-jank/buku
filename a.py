@@ -140,7 +140,7 @@ def get_chapters_from_pdf(file_path):
 # Function to convert text to speech using gTTS
 def text_to_speech(text):
     try:
-        tts = gTTS(text=text, lang='id')  # 'id' is for Indonesian, change if needed
+        tts = gTTS(text=text, lang='id')  
         # Save the speech to a temporary file
         with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as temp_file:
             temp_file.close()
@@ -189,6 +189,7 @@ if selected_title != "Pilih Buku...":
 
     if file_extension == '.epub':
         # Process EPUB file
+        st.write(f"**Judul:** {selected_title}") 
         chapters = get_chapters_from_epub(book_file_path)
         texts = extract_text_from_chapters(book_file_path, chapters)
 
