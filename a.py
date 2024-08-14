@@ -14,7 +14,7 @@ def get_chapters_from_toc_ncx(file_path):
         toc_ncx_filename = 'toc.ncx'
         if toc_ncx_filename in zip_ref.namelist():
             toc_ncx_content = zip_ref.read(toc_ncx_filename)
-            soup = BeautifulSoup(toc_ncx_content, 'html.parser')
+            soup = BeautifulSoup(toc_ncx_content, 'xml')
             nav_points = soup.find_all('navPoint')
 
             for nav_point in nav_points:
