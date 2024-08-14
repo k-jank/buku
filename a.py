@@ -69,10 +69,10 @@ def html_to_text_with_formatting(html_content):
 def extract_text_from_chapters(file_path, chapters):
     text_content = {}
     
-    with zipfile.ZipFile(file_path, 'r') as zip_ref:
+    with zipfile.ZipFile(file_path, 'r') as epub_zip:
         for title, content_file in chapters:
-            if content_file in zip_ref.namelist():
-                content = zip_ref.read(content_file).decode('utf-8')  # Decode content to string
+            if content_file in epub_zip.namelist():
+                content = epub_zip.read(content_file).decode('utf-8')  # Decode content to string
                 text_content[title] = html_to_text_with_formatting(content)
             else:
                 text_content[title] = "Konten tidak ditemukan."
