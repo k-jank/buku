@@ -153,28 +153,28 @@ if selected_title != "Pilih Buku...":
         else:
             st.write("Please select a chapter from the sidebar.")
 
-elif file_extension == '.pdf':
-        # Process PDF file
-        chapters = get_chapters_from_pdf(book_file_path)
-
-        # Display metadata and chapters
-        st.write(f"**Judul:** {selected_title}") 
-
-        # Create a sidebar for chapter selection
-        selected_chapter = st.sidebar.selectbox("Pilihan Bab", [title for title, _ in chapters])
-
-        if selected_chapter:
-            chapter_text = next((text for title, text in chapters if title == selected_chapter), "Konten tidak ditemukan.")
-            
-            # Button for converting text to speech
-            if st.button("Dengarkan Audio"):
-                audio_file_path = text_to_speech(chapter_text)
-                st.audio(audio_file_path, format='audio/mp3')
-            
-            # Display the selected chapter content in a collapsible section with title
-            with st.expander(f"Tampilkan Isi Buku: {selected_chapter}"):
-                st.markdown(chapter_text)
-        else:
-            st.write("Please select a chapter from the sidebar.")
+    elif file_extension == '.pdf':
+            # Process PDF file
+            chapters = get_chapters_from_pdf(book_file_path)
+    
+            # Display metadata and chapters
+            st.write(f"**Judul:** {selected_title}") 
+    
+            # Create a sidebar for chapter selection
+            selected_chapter = st.sidebar.selectbox("Pilihan Bab", [title for title, _ in chapters])
+    
+            if selected_chapter:
+                chapter_text = next((text for title, text in chapters if title == selected_chapter), "Konten tidak ditemukan.")
+                
+                # Button for converting text to speech
+                if st.button("Dengarkan Audio"):
+                    audio_file_path = text_to_speech(chapter_text)
+                    st.audio(audio_file_path, format='audio/mp3')
+                
+                # Display the selected chapter content in a collapsible section with title
+                with st.expander(f"Tampilkan Isi Buku: {selected_chapter}"):
+                    st.markdown(chapter_text)
+            else:
+                st.write("Please select a chapter from the sidebar.")
 else:
     st.write(f"**{selected_title}** format is not supported for chapter extraction.")
