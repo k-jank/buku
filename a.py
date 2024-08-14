@@ -16,17 +16,19 @@ def get_chapters_from_epub(file_path):
     with zipfile.ZipFile(file_path, 'r') as epub_zip:
         possible_paths = ['', 'OPS/', 'OEBPS/']
         toc_ncx_filename = None
-
-        # Check each possible path
+        
+        # Check each possible path for toc.ncx
         for path in possible_paths:
             toc_ncx = path + 'toc.ncx'
-            if toc_ncx in zip_ref.namelist():
+            if toc_ncx in epub_zip.namelist():
                 toc_ncx_filename = toc_ncx
-                base_path = path
                 break
         
+        if toc_ncx_filename is None:
+            return chapter_list
+        
         # Read and parse the .ncx file
-        with epub_zip.open(ncx_file) as f:
+        with epub_zip.open(toc_ncx_filename) as f:
             ncx_content = f.read().decode('utf-8')
         
         root = ET.fromstring(ncx_content)
@@ -41,10 +43,10 @@ def get_chapters_from_epub(file_path):
             title = label_element.text if label_element is not None else 'Untitled'
             content_element = nav_point.find('ncx:content', namespaces)
             content_file = content_element.get('src') if content_element is not None else ''
-            chapters.append((title, content_file))
+            chapter_list.append((title, content_file))
     
-    return chapter_list 
-    
+    return chapter_list
+
 # Streamlit app
 st.sidebar.title("Available Books")
 selected_book = st.sidebar.selectbox("Select a book:", book_files)
