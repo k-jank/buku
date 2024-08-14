@@ -3,4 +3,3 @@ beautifulsoup4
 gtts
 PyMuPDF
 lxml
-xml
