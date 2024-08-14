@@ -7,6 +7,7 @@ from gtts import gTTS
 import tempfile
 import fitz
 import re
+import io
 
 # Define the directory containing the books
 books_dir = 'books/'
@@ -140,12 +141,12 @@ def get_chapters_from_pdf(file_path):
 # Function to convert text to speech using gTTS
 def text_to_speech(text):
     try:
-        tts = gTTS(text=text, lang='id')  
-        # Save the speech to a temporary file
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as temp_file:
-            temp_file.close()
-            tts.save(temp_file.name)
-            return temp_file.name
+        tts = gTTS(text=text, lang='id')
+        # Save the speech to a BytesIO object
+        with io.BytesIO() as buffer:
+            tts.write_to_fp(buffer)
+            buffer.seek(0)
+            return buffer
     except Exception as e:
         st.error(f"Error generating speech: {str(e)}")
         return None
