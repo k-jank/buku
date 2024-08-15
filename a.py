@@ -182,7 +182,6 @@ st.markdown("""
     <div class="title">NDONGENG</div>
 """, unsafe_allow_html=True)
 
-# Sidebar for book selection
 st.sidebar.header('Pilihan Buku')
 
 # List available EPUB and PDF files in the books directory
@@ -191,11 +190,14 @@ book_files = [f for f in os.listdir(books_dir) if f.endswith(('.epub', '.pdf'))]
 # Remove the extensions for display
 book_titles = [os.path.splitext(f)[0] for f in book_files]
 
+# Sort the book titles alphabetically
+book_titles_sorted = sorted(book_titles)
+
 # Add an empty option to the dropdown
-book_titles.insert(0, "Pilih Buku...")
+book_titles_sorted.insert(0, "Pilih Buku...")
 
 # Create the sidebar selectbox with default empty option
-selected_title = st.sidebar.selectbox("Pilih Judul Buku", book_titles)
+selected_title = st.sidebar.selectbox("Pilih Judul Buku", book_titles_sorted)
 
 if selected_title != "Pilih Buku...":
     # Resolve the full path of the selected file
