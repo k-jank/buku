@@ -3,3 +3,4 @@ beautifulsoup4==4.12.2
 gtts==2.5.2
 PyMuPDF==1.24.9
 lxml==4.9.3
+Pillow
