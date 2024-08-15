@@ -99,7 +99,7 @@ def extract_text_from_chapters(file_path, chapters):
     return text_content
 
 #Epub Cover
-def epub_cover(epub_path, thumbnail_size=(100, 200)):
+def epub_cover(epub_path, thumbnail_size=(150, 250)):
     # Open the EPUB file as a zip
     with zipfile.ZipFile(epub_path, 'r') as z:
         # Find the cover image
@@ -186,7 +186,7 @@ def get_chapters_from_pdf(file_path):
     return chapter_list
 
 #PDF Cover
-def pdf_cover(pdf_path, page_number=0, thumbnail_size=(100, 200)):
+def pdf_cover(pdf_path, page_number=0, thumbnail_size=(150, 250)):
     pdf_document = fitz.open(pdf_path)
     page = pdf_document.load_page(page_number)
     pix = page.get_pixmap()
