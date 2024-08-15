@@ -28,6 +28,7 @@ def get_chapters_from_epub(file_path):
             toc_ncx = path + 'toc.ncx'
             if toc_ncx in epub_zip.namelist():
                 toc_ncx_filename = toc_ncx
+                base_path = path
                 break
         
         if toc_ncx_filename is None:
@@ -49,6 +50,11 @@ def get_chapters_from_epub(file_path):
             title = label_element.text if label_element is not None else 'Untitled'
             content_element = nav_point.find('ncx:content', namespaces)
             content_file = content_element.get('src') if content_element is not None else ''
+            
+            # Correct the path prefix based on the base path
+            if not content_file.startswith(('OPS/', 'OEBPS/')):
+                content_file = base_path + content_file
+            
             chapter_list.append((title, content_file))
     
     return chapter_list
@@ -57,7 +63,8 @@ def get_chapters_from_epub(file_path):
 def generate_formatted_html(html_content):
     soup = BeautifulSoup(html_content, 'html.parser')
     text = ''
-    for tag in soup.find_all(['h1', 'h2', 'h3', 'p']):
+    
+    for tag in soup.find_all(['h1', 'h2', 'h3', 'p', 'div']):
         if tag.name == 'h1':
             text += f'<h1 style="text-align:center; font-size:2em; margin-top:20px;">{tag.get_text()}</h1>\n'
         elif tag.name == 'h2':
@@ -66,6 +73,7 @@ def generate_formatted_html(html_content):
             text += f'<h3 style="text-align:center; font-size:1.2em; margin-top:10px;">{tag.get_text()}</h3>\n'
         elif tag.name == 'p':
             text += f'<p style="margin-bottom:10px;">{tag.get_text()}</p>\n'
+            
     return text.strip()
 
 # Function to extract plain text for gTTS
@@ -114,11 +122,16 @@ def get_chapters_from_pdf(file_path):
         # Remove page numbers from the text
         cleaned_text = remove_page_numbers(full_text)
         
-        # Adjust the regex pattern to match titles like "BAB I", "BAB II", etc.
-        chapter_titles = re.findall(r'\bBAB\s+[IVXLCDM]+\b|\bBAB\s+\d+', cleaned_text, flags=re.IGNORECASE)
+        # Patterns to match chapter titles
+        pattern_with_prefix = r'\bBAB\s+[IVXLCDM]+\b|\bBAB\s+\d+'
+        pattern_textual = r'\bBagian\s+(Pertama|Kedua|Ketiga|Keempat|Kelima)\b'
+        
+        # Find all matches for chapter titles
+        combined_pattern = f'{pattern_with_prefix}|{pattern_textual}'
+        chapter_titles = re.findall(combined_pattern, cleaned_text, flags=re.IGNORECASE)
         
         # Create a list of positions for each title
-        positions = [m.start() for m in re.finditer(r'\bBAB\s+[IVXLCDM]+\b|\bBAB\s+\d+', cleaned_text, flags=re.IGNORECASE)]
+        positions = [m.start() for m in re.finditer(combined_pattern, cleaned_text, flags=re.IGNORECASE)]
         
         # Add end position for the last chapter
         positions.append(len(cleaned_text))
@@ -131,7 +144,7 @@ def get_chapters_from_pdf(file_path):
             chapter_content = cleaned_text[start_pos:end_pos].strip()
             
             # Extract the title of the chapter
-            title_match = re.search(r'\bBAB\s+[IVXLCDM]+\b|\bBAB\s+\d+', chapter_content, flags=re.IGNORECASE)
+            title_match = re.search(combined_pattern, chapter_content, flags=re.IGNORECASE)
             title = title_match.group() if title_match else 'Unknown Title'
             
             # Extract first line after title to include in output
