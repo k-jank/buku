@@ -99,7 +99,7 @@ def extract_text_from_chapters(file_path, chapters):
     return text_content
 
 #Epub Cover
-def epub_cover(epub_path, thumbnail_size=(100, 200)):
+def epub_cover(epub_path, thumbnail_size=(150, 250)):
     # Open the EPUB file as a zip
     with zipfile.ZipFile(epub_path, 'r') as z:
         # Find the cover image
