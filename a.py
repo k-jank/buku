@@ -80,7 +80,7 @@ def extract_text_from_chapters(file_path, chapters):
     with zipfile.ZipFile(file_path, 'r') as epub_zip:
         for title, content_file in chapters:
             if content_file in epub_zip.namelist():
-                content = epub_zip.read(content_file).decode('utf-8')  # Decode content to string
+                content = epub_zip.read(content_file).decode('utf-8')
                 text_content[title] = generate_formatted_html(content)
             else:
                 text_content[title] = "Konten tidak ditemukan."
@@ -244,7 +244,5 @@ if selected_title != "Pilih Buku...":
                     st.markdown(chapter_text)
             else:
                 st.write("Please select a chapter from the sidebar.")
-
 else:
-st.write(f"{selected_title}")
-
+    st.write(f"{selected_title}")
