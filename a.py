@@ -261,6 +261,15 @@ if selected_title != "Pilih Buku...":
                 f"</div>",
                 unsafe_allow_html=True
             )
+            # Handle the case where no cover image is available
+            title_parts = [part.strip() for part in selected_title.split(' - ')]
+            st.markdown(
+                f"<div style='text-align: center;'>"
+                f"<strong>{title_parts[0]}</strong> <br>"
+                f"{title_parts[1]}"
+                f"</div>",
+                unsafe_allow_html=True
+            )
         else:
             # Handle the case where no cover image is available
             title_parts = [part.strip() for part in selected_title.split(' - ')]
@@ -299,19 +308,16 @@ if selected_title != "Pilih Buku...":
     elif file_extension == '.pdf':
         # Get the cover image from the PDF file
         cover_image = pdf_cover(book_file_path)
-        
-        if cover_image is not None:
-            # If cover image is available, process and display it
-            buffered = io.BytesIO()
-            cover_image.save(buffered, format="PNG")
-            cover_image_bytes = buffered.getvalue()
+        buffered = io.BytesIO()
+        cover_image.save(buffered, format="PNG")
+        cover_image_bytes = buffered.getvalue()
             
-            st.markdown(
-                f"<div style='text-align: center;'>"
-                f"<img src='data:image/png;base64,{base64.b64encode(cover_image_bytes).decode()}' style='display: inline-block;' />"
-                f"</div>",
-                unsafe_allow_html=True
-            )
+        st.markdown(
+            f"<div style='text-align: center;'>"
+            f"<img src='data:image/png;base64,{base64.b64encode(cover_image_bytes).decode()}' style='display: inline-block;' />"
+            f"</div>",
+            unsafe_allow_html=True
+        )
         
         # Handle the case where no cover image is available
         title_parts = [part.strip() for part in selected_title.split(' - ')]
