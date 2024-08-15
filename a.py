@@ -8,6 +8,9 @@ import tempfile
 import fitz
 import re
 import io
+from PIL import Image
+from io import BytesIO
+import base64
 
 # Define the directory containing the books
 books_dir = 'books/'
@@ -73,7 +76,7 @@ def generate_formatted_html(html_content):
             text += f'<h3 style="text-align:center; font-size:1.2em; margin-top:10px;">{tag.get_text()}</h3>\n'
         elif tag.name == 'p':
             text += f'<p style="margin-bottom:10px;">{tag.get_text()}</p>\n'
-            
+
     return text.strip()
 
 # Function to extract plain text for gTTS
@@ -94,6 +97,32 @@ def extract_text_from_chapters(file_path, chapters):
                 text_content[title] = "Konten tidak ditemukan."
     
     return text_content
+
+#Epub Cover
+def epub_cover(epub_path, thumbnail_size=(100, 200)):
+    # Open the EPUB file as a zip
+    with zipfile.ZipFile(epub_path, 'r') as z:
+        # Find the cover image
+        cover_file = None
+        for file in z.namelist():
+            if 'cover' in file.lower() and file.lower().endswith(('.jpg', '.jpeg', '.png')):
+                cover_file = file
+                break
+
+        if cover_file is None:
+            return None  # No cover image found, return None
+        
+        # Read the cover image as a byte stream
+        with z.open(cover_file) as f:
+            cover_image = BytesIO(f.read())
+        
+        # Open the image from the byte stream
+        image = Image.open(cover_image)
+        
+        # Resize the image to the thumbnail size
+        image.thumbnail(thumbnail_size)
+        
+        return image
 
 def remove_page_numbers(text):
     # Regex pattern to identify page numbers, assuming they are on their own line or separated by newlines
@@ -155,6 +184,16 @@ def get_chapters_from_pdf(file_path):
             print(f"Detected {title}: {first_line_after_title}")
     
     return chapter_list
+
+#PDF Cover
+def pdf_cover(pdf_path, page_number=0, thumbnail_size=(100, 200)):
+    pdf_document = fitz.open(pdf_path)
+    page = pdf_document.load_page(page_number)
+    pix = page.get_pixmap()
+    img = Image.open(BytesIO(pix.tobytes()))
+    img.thumbnail(thumbnail_size)  # Resize the image to the thumbnail size
+    pdf_document.close()
+    return img
     
 # Function to convert text to speech using gTTS
 def text_to_speech(text):
@@ -182,6 +221,7 @@ st.markdown("""
     <div class="title">NDONGENG</div>
 """, unsafe_allow_html=True)
 
+# Sidebar for book selection
 st.sidebar.header('Pilihan Buku')
 
 # List available EPUB and PDF files in the books directory
@@ -190,14 +230,11 @@ book_files = [f for f in os.listdir(books_dir) if f.endswith(('.epub', '.pdf'))]
 # Remove the extensions for display
 book_titles = [os.path.splitext(f)[0] for f in book_files]
 
-# Sort the book titles alphabetically
-book_titles_sorted = sorted(book_titles)
-
 # Add an empty option to the dropdown
-book_titles_sorted.insert(0, "Pilih Buku...")
+book_titles.insert(0, "Pilih Buku...")
 
 # Create the sidebar selectbox with default empty option
-selected_title = st.sidebar.selectbox("Pilih Judul Buku", book_titles_sorted)
+selected_title = st.sidebar.selectbox("Pilih Judul Buku", book_titles)
 
 if selected_title != "Pilih Buku...":
     # Resolve the full path of the selected file
@@ -209,7 +246,24 @@ if selected_title != "Pilih Buku...":
 
     if file_extension == '.epub':
         # Process EPUB file
-        st.write(f"**Judul:** {selected_title}") 
+        cover_image = epub_cover(book_file_path)
+        buffered = io.BytesIO()
+        cover_image.save(buffered, format="PNG")
+        cover_image_bytes = buffered.getvalue()
+        st.markdown(
+            f"<div style='text-align: center;'>"
+            f"<img src='data:image/png;base64,{base64.b64encode(cover_image_bytes).decode()}' style='display: inline-block;' />"
+            f"</div>",
+                unsafe_allow_html=True
+        )
+        title_parts =  [part.strip() for part in selected_title.split(' - ')]
+        st.markdown(
+            f"<div style='text-align: center;'>"
+            f"<strong> {title_parts[0]} </strong> <br>"
+            f"{title_parts[1]}"
+            f"</div>",
+            unsafe_allow_html=True
+        )
         chapters = get_chapters_from_epub(book_file_path)
         formatted_texts = extract_text_from_chapters(book_file_path, chapters)
         text_for_speech = {title: extract_text_for_gtts(html_content) for title, html_content in formatted_texts.items()}
@@ -234,12 +288,28 @@ if selected_title != "Pilih Buku...":
             st.write("Please select a chapter from the sidebar.")
 
     elif file_extension == '.pdf':
+            cover_image = pdf_cover(book_file_path)
+            buffered = io.BytesIO()
+            cover_image.save(buffered, format="PNG")
+            cover_image_bytes = buffered.getvalue()
+            st.markdown(
+                f"<div style='text-align: center;'>"
+                f"<img src='data:image/png;base64,{base64.b64encode(cover_image_bytes).decode()}' style='display: inline-block;' />"
+                f"</div>",
+                 unsafe_allow_html=True
+            )
+            title_parts =  [part.strip() for part in selected_title.split(' - ')]
+            st.markdown(
+                f"<div style='text-align: center;'>"
+                f"<strong> {title_parts[0]} </strong><br>"
+                f"{title_parts[1]}"
+                f"</div>",
+                unsafe_allow_html=True
+            )
+
             # Process PDF file
             chapters = get_chapters_from_pdf(book_file_path)
             text_for_speech = {title: extract_text_for_gtts(text) for title, text in chapters}
-    
-            # Display metadata and chapters
-            st.write(f"**Judul:** {selected_title}") 
     
             # Create a sidebar for chapter selection
             selected_chapter = st.sidebar.selectbox("Pilihan Bab", [title for title, _ in chapters])
