@@ -226,6 +226,7 @@ st.sidebar.header('Pilihan Buku')
 
 # List available EPUB and PDF files in the books directory
 book_files = [f for f in os.listdir(books_dir) if f.endswith(('.epub', '.pdf'))]
+book_files.sort()
 
 # Remove the extensions for display
 book_titles = [os.path.splitext(f)[0] for f in book_files]
