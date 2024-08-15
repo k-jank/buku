@@ -246,25 +246,33 @@ if selected_title != "Pilih Buku...":
     file_extension = os.path.splitext(selected_book)[1].lower()
 
     if file_extension == '.epub':
-        # Process EPUB file
+        # Get the cover image from the EPUB file
         cover_image = epub_cover(book_file_path)
-        buffered = io.BytesIO()
-        cover_image.save(buffered, format="PNG")
-        cover_image_bytes = buffered.getvalue()
-        st.markdown(
-            f"<div style='text-align: center;'>"
-            f"<img src='data:image/png;base64,{base64.b64encode(cover_image_bytes).decode()}' style='display: inline-block;' />"
-            f"</div>",
+        
+        if cover_image is not None:
+            # If cover image is available, process and display it
+            buffered = io.BytesIO()
+            cover_image.save(buffered, format="PNG")
+            cover_image_bytes = buffered.getvalue()
+            
+            st.markdown(
+                f"<div style='text-align: center;'>"
+                f"<img src='data:image/png;base64,{base64.b64encode(cover_image_bytes).decode()}' style='display: inline-block;' />"
+                f"</div>",
                 unsafe_allow_html=True
-        )
-        title_parts =  [part.strip() for part in selected_title.split(' - ')]
-        st.markdown(
-            f"<div style='text-align: center;'>"
-            f"<strong> {title_parts[0]} </strong> <br>"
-            f"{title_parts[1]}"
-            f"</div>",
-            unsafe_allow_html=True
-        )
+            )
+        else:
+            # Handle the case where no cover image is available
+            title_parts = [part.strip() for part in selected_title.split(' - ')]
+            st.markdown(
+                f"<div style='text-align: center;'>"
+                f"<strong>{title_parts[0]}</strong> <br>"
+                f"{title_parts[1]}"
+                f"</div>",
+                unsafe_allow_html=True
+            )
+        
+        # Process EPUB file
         chapters = get_chapters_from_epub(book_file_path)
         formatted_texts = extract_text_from_chapters(book_file_path, chapters)
         text_for_speech = {title: extract_text_for_gtts(html_content) for title, html_content in formatted_texts.items()}
@@ -287,48 +295,55 @@ if selected_title != "Pilih Buku...":
                 st.markdown(chapter_text, unsafe_allow_html=True)
         else:
             st.write("Please select a chapter from the sidebar.")
-
+    
     elif file_extension == '.pdf':
-            cover_image = pdf_cover(book_file_path)
+        # Get the cover image from the PDF file
+        cover_image = pdf_cover(book_file_path)
+        
+        if cover_image is not None:
+            # If cover image is available, process and display it
             buffered = io.BytesIO()
             cover_image.save(buffered, format="PNG")
             cover_image_bytes = buffered.getvalue()
+            
             st.markdown(
                 f"<div style='text-align: center;'>"
                 f"<img src='data:image/png;base64,{base64.b64encode(cover_image_bytes).decode()}' style='display: inline-block;' />"
                 f"</div>",
-                 unsafe_allow_html=True
-            )
-            title_parts =  [part.strip() for part in selected_title.split(' - ')]
-            st.markdown(
-                f"<div style='text-align: center;'>"
-                f"<strong> {title_parts[0]} </strong><br>"
-                f"{title_parts[1]}"
-                f"</div>",
                 unsafe_allow_html=True
             )
+        
+        # Handle the case where no cover image is available
+        title_parts = [part.strip() for part in selected_title.split(' - ')]
+        st.markdown(
+            f"<div style='text-align: center;'>"
+            f"<strong>{title_parts[0]}</strong><br>"
+            f"{title_parts[1]}"
+            f"</div>",
+            unsafe_allow_html=True
+        )
+        
+        # Process PDF file
+        chapters = get_chapters_from_pdf(book_file_path)
+        text_for_speech = {title: extract_text_for_gtts(text) for title, text in chapters}
+    
+        # Create a sidebar for chapter selection
+        selected_chapter = st.sidebar.selectbox("Pilihan Bab", [title for title, _ in chapters])
 
-            # Process PDF file
-            chapters = get_chapters_from_pdf(book_file_path)
-            text_for_speech = {title: extract_text_for_gtts(text) for title, text in chapters}
-    
-            # Create a sidebar for chapter selection
-            selected_chapter = st.sidebar.selectbox("Pilihan Bab", [title for title, _ in chapters])
-    
-            if selected_chapter:
-                chapter_text = next((text for title, text in chapters if title == selected_chapter), "Konten tidak ditemukan.")
-                text_for_speech_content = next((text for title, text in chapters if title == selected_chapter), "Konten tidak ditemukan.")
-                
-                # Button for converting text to speech
-                if st.button("Dengarkan Audio"):
-                    audio_file_path = text_to_speech(text_for_speech_content)
-                    if audio_file_path:
-                        st.audio(audio_file_path, format='audio/mp3')
-                
-                # Display the selected chapter content in a collapsible section with title
-                with st.expander(f"Tampilkan Isi Buku: {selected_chapter}"):
-                    st.markdown(chapter_text)
-            else:
-                st.write("Please select a chapter from the sidebar.")
+        if selected_chapter:
+            chapter_text = next((text for title, text in chapters if title == selected_chapter), "Konten tidak ditemukan.")
+            text_for_speech_content = text_for_speech.get(selected_chapter, "Konten tidak ditemukan.")
+            
+            # Button for converting text to speech
+            if st.button("Dengarkan Audio"):
+                audio_file_path = text_to_speech(text_for_speech_content)
+                if audio_file_path:
+                    st.audio(audio_file_path, format='audio/mp3')
+            
+            # Display the selected chapter content in a collapsible section with title
+            with st.expander(f"Tampilkan Isi Buku: {selected_chapter}"):
+                st.markdown(chapter_text)
+        else:
+            st.write("Please select a chapter from the sidebar.")
 else:
     st.write(f"{selected_title}")
