@@ -99,7 +99,7 @@ def extract_text_from_chapters(file_path, chapters):
     return text_content
 
 #Epub Cover
-def epub_cover(epub_path, thumbnail_size=(150, 250)):
+def epub_cover(epub_path, thumbnail_size=(100, 200)):
     # Open the EPUB file as a zip
     with zipfile.ZipFile(epub_path, 'r') as z:
         # Find the cover image
@@ -226,7 +226,6 @@ st.sidebar.header('Pilihan Buku')
 
 # List available EPUB and PDF files in the books directory
 book_files = [f for f in os.listdir(books_dir) if f.endswith(('.epub', '.pdf'))]
-book_files.sort()
 
 # Remove the extensions for display
 book_titles = [os.path.splitext(f)[0] for f in book_files]
